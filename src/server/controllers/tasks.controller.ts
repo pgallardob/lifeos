@@ -21,6 +21,7 @@ function parseInput(body: Body, partial: boolean): taskService.TaskInput {
     estimatedHours: optNumber(body, "estimatedHours", 0),
     dueDate: optDate(body, "dueDate"),
     sortOrder: optNumber(body, "sortOrder", 0),
+    focusedMinutes: optNumber(body, "focusedMinutes", 0),
   };
 }
 

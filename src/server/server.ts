@@ -51,6 +51,15 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
     res.status(err.status).json({ error: err.message });
     return;
   }
+  // Errores de body-parser (JSON malformado, body demasiado grande, etc.)
+  // traen su propio status 4xx — respetarlo en vez de devolver 500.
+  const status = (err as { status?: unknown }).status;
+  if (typeof status === "number" && status >= 400 && status < 500) {
+    res.status(status).json({
+      error: err instanceof Error ? err.message : "Petición inválida",
+    });
+    return;
+  }
   const message = err instanceof Error ? err.message : "Error interno";
   if (!config.isProduction) {
     console.error("[lifeos] error:", err);

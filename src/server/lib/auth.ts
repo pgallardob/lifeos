@@ -1,14 +1,16 @@
-/** Middleware de autenticación: cookie de sesión → req.userId. */
+/** Middleware de autenticación: cookie de sesión → req.userId / req.user. */
 import type { NextFunction, Request, Response } from "express";
+import type { User } from "../../shared/types/index.js";
 import { getUserByToken } from "../services/auth.service.js";
 import { HttpError } from "./http-error.js";
 
 export const SESSION_COOKIE = "lifeos_session";
 
-// Augmentación: req.userId disponible en todos los handlers tras requireAuth.
+// Augmentación: req.userId y req.user disponibles tras requireAuth.
 declare module "express-serve-static-core" {
   interface Request {
     userId: string;
+    user: User;
   }
 }
 
@@ -17,7 +19,13 @@ export function sessionTokenFrom(cookieHeader: string | undefined): string | nul
   if (!cookieHeader) return null;
   for (const part of cookieHeader.split(";")) {
     const [k, ...v] = part.trim().split("=");
-    if (k === SESSION_COOKIE) return decodeURIComponent(v.join("="));
+    if (k === SESSION_COOKIE) {
+      try {
+        return decodeURIComponent(v.join("="));
+      } catch {
+        return null; // cookie malformada → sin sesión
+      }
+    }
   }
   return null;
 }
@@ -34,6 +42,7 @@ export async function requireAuth(
     const user = await getUserByToken(token);
     if (!user) throw HttpError.unauthorized("Sesión expirada. Vuelve a entrar.");
     req.userId = user.id;
+    req.user = user;
     next();
   } catch (err) {
     next(err);

@@ -17,18 +17,21 @@ export function initWebSocket(server: HttpServer): void {
   wss = new WebSocketServer({ noServer: true });
 
   server.on("upgrade", (req: IncomingMessage, socket, head) => {
-    if (!req.url?.startsWith("/ws")) return; // otras rutas de upgrade: ignorar
-    void userIdFromCookie(req.headers.cookie).then((userId) => {
-      if (!userId) {
-        socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
-        socket.destroy();
-        return;
-      }
-      wss!.handleUpgrade(req, socket, head, (ws) => {
-        socketUser.set(ws, userId);
-        wss!.emit("connection", ws, req);
-      });
-    });
+    // Solo /ws exacto (con o sin query string); otras rutas de upgrade: ignorar.
+    if (req.url?.split("?")[0] !== "/ws") return;
+    userIdFromCookie(req.headers.cookie)
+      .then((userId) => {
+        if (!userId) {
+          socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
+          socket.destroy();
+          return;
+        }
+        wss!.handleUpgrade(req, socket, head, (ws) => {
+          socketUser.set(ws, userId);
+          wss!.emit("connection", ws, req);
+        });
+      })
+      .catch(() => socket.destroy()); // BD caída: no dejar el socket colgado
   });
 
   wss.on("connection", (socket: WebSocket) => {

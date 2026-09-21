@@ -53,7 +53,7 @@ export async function mountShell(options: ShellOptions): Promise<HTMLElement> {
   mountCommandPalette();
   mountFocusMode();
   connectWebSocket();
-  mountOnboarding();
+  mountOnboarding(user.id);
   registerServiceWorker();
   return main;
 }

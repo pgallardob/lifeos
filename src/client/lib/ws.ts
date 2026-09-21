@@ -4,6 +4,7 @@
  */
 import type { LifeEvent } from "../../shared/types/index.js";
 import { toast } from "../components/ui.js";
+import { api } from "./api.js";
 
 const TOASTABLE: Record<string, string> = {
   goal_created: "Objetivo creado",
@@ -33,7 +34,11 @@ export function connectWebSocket(): void {
   });
 
   socket.addEventListener("close", () => {
-    // Reintento simple tras 5s
-    setTimeout(connectWebSocket, 5000);
+    // Si la sesión expiró, /me responde 401 y api.ts redirige al login
+    // (la promesa nunca resuelve → no se reintenta). Si la sesión sigue
+    // viva o hay un fallo de red, reconecta tras 5s.
+    api.get("/api/auth/me")
+      .catch(() => { /* red caída: reintentar igual */ })
+      .then(() => setTimeout(connectWebSocket, 5000));
   });
 }

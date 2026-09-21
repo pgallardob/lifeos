@@ -5,7 +5,7 @@
  */
 import { el } from "../lib/dom.js";
 
-const KEY = "lifeos:onboarded";
+const KEY_PREFIX = "lifeos:onboarded";
 
 const STEPS = [
   {
@@ -25,8 +25,10 @@ const STEPS = [
   },
 ];
 
-export function mountOnboarding(): void {
-  if (localStorage.getItem(KEY)) return;
+/** Muestra el onboarding una vez por usuario (clave por userId). */
+export function mountOnboarding(userId: string): void {
+  const key = `${KEY_PREFIX}:${userId}`;
+  if (localStorage.getItem(key)) return;
 
   const list = el("ol", { className: "onboarding__steps" });
   for (const s of STEPS) {
@@ -77,7 +79,7 @@ export function mountOnboarding(): void {
   requestAnimationFrame(() => overlay.classList.add("onboarding-backdrop--open"));
 
   function close(): void {
-    localStorage.setItem(KEY, "1");
+    localStorage.setItem(key, "1");
     overlay.classList.remove("onboarding-backdrop--open");
     setTimeout(() => overlay.remove(), 300);
   }

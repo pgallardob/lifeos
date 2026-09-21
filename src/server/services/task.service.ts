@@ -63,6 +63,7 @@ export interface TaskInput {
   estimatedHours?: number | null;
   dueDate?: string | null;
   sortOrder?: number | null;
+  focusedMinutes?: number | null;
 }
 
 async function assertProjectExists(userId: string, projectId: string | null | undefined): Promise<void> {
@@ -156,9 +157,11 @@ export async function updateTask(userId: string, id: string, input: TaskInput): 
       input.estimatedHours !== undefined ? input.estimatedHours : existing.estimatedHours,
     dueDate: input.dueDate !== undefined ? input.dueDate : existing.dueDate,
     sortOrder: input.sortOrder ?? existing.sortOrder,
+    focusedMinutes: input.focusedMinutes ?? existing.focusedMinutes,
   };
 
   const becameCompleted = merged.status === "completed" && existing.status !== "completed";
+  const gainedFocus = merged.focusedMinutes > existing.focusedMinutes;
   const completedAt = becameCompleted
     ? new Date().toISOString()
     : merged.status !== "completed"
@@ -167,8 +170,9 @@ export async function updateTask(userId: string, id: string, input: TaskInput): 
 
   await execute(
     `UPDATE tasks SET project_id = $1, title = $2, description = $3, status = $4, priority = $5,
-       estimated_hours = $6, due_date = $7, sort_order = $8, completed_at = $9, updated_at = now()
-     WHERE id = $10 AND user_id = $11`,
+       estimated_hours = $6, due_date = $7, sort_order = $8, completed_at = $9,
+       focused_minutes = $10, updated_at = now()
+     WHERE id = $11 AND user_id = $12`,
     [
       merged.projectId,
       merged.title,
@@ -179,6 +183,7 @@ export async function updateTask(userId: string, id: string, input: TaskInput): 
       merged.dueDate,
       merged.sortOrder,
       completedAt,
+      merged.focusedMinutes,
       id,
       userId,
     ],
@@ -186,6 +191,10 @@ export async function updateTask(userId: string, id: string, input: TaskInput): 
 
   if (becameCompleted) {
     await logEvent(userId, "task_completed", `Tarea completada: "${merged.title}"`, "task", id);
+  }
+  if (gainedFocus) {
+    const mins = merged.focusedMinutes - existing.focusedMinutes;
+    await logEvent(userId, "focus_session", `Sesión de enfoque: ${mins} min en "${merged.title}"`, "task", id);
   }
   await recalcProjectProgress(userId, existing.projectId);
   if (merged.projectId !== existing.projectId) await recalcProjectProgress(userId, merged.projectId);

@@ -38,6 +38,8 @@ function showError(el: HTMLElement, err: unknown): void {
 formLogin.addEventListener("submit", async (e) => {
   e.preventDefault();
   loginError.hidden = true;
+  const btn = formLogin.querySelector<HTMLButtonElement>("button[type=submit]")!;
+  btn.disabled = true;
   const data = new FormData(formLogin);
   try {
     await api.post("/api/auth/login", {
@@ -47,12 +49,15 @@ formLogin.addEventListener("submit", async (e) => {
     window.location.href = DASHBOARD;
   } catch (err) {
     showError(loginError, err);
+    btn.disabled = false;
   }
 });
 
 formRegister.addEventListener("submit", async (e) => {
   e.preventDefault();
   registerError.hidden = true;
+  const btn = formRegister.querySelector<HTMLButtonElement>("button[type=submit]")!;
+  btn.disabled = true;
   const data = new FormData(formRegister);
   try {
     await api.post("/api/auth/register", {
@@ -63,5 +68,6 @@ formRegister.addEventListener("submit", async (e) => {
     window.location.href = DASHBOARD;
   } catch (err) {
     showError(registerError, err);
+    btn.disabled = false;
   }
 });

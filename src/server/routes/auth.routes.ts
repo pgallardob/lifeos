@@ -62,7 +62,5 @@ authRouter.post("/logout", ah(async (req: Request, res: Response) => {
 }));
 
 authRouter.get("/me", requireAuth, ah(async (req: Request, res: Response) => {
-  const token = sessionTokenFrom(req.headers.cookie)!;
-  const user = await authService.getUserByToken(token);
-  res.json({ user });
+  res.json({ user: req.user }); // requireAuth ya resolvió el usuario
 }));

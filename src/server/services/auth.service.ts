@@ -63,10 +63,18 @@ export async function register(
   }
 
   const id = newId("usr");
-  await execute(
-    `INSERT INTO users (id, name, email, password_hash) VALUES ($1, $2, $3, $4)`,
-    [id, name, email.toLowerCase(), hashPassword(password)],
-  );
+  try {
+    await execute(
+      `INSERT INTO users (id, name, email, password_hash) VALUES ($1, $2, $3, $4)`,
+      [id, name, email.toLowerCase(), hashPassword(password)],
+    );
+  } catch (err) {
+    // Carrera: otro request registró el mismo email entre el check y el INSERT.
+    if ((err as { code?: string }).code === "23505") {
+      throw HttpError.conflict("Ya existe una cuenta con ese email.");
+    }
+    throw err;
+  }
   await seedResources(id);
   const token = await createSession(id);
 

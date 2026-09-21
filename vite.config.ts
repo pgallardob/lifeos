@@ -34,6 +34,7 @@ export default defineConfig({
         resources: resolve(__dirname, "src/client/pages/resources.html"),
         simulator: resolve(__dirname, "src/client/pages/simulator.html"),
         insights: resolve(__dirname, "src/client/pages/insights.html"),
+        settings: resolve(__dirname, "src/client/pages/settings.html"),
       },
     },
   },
