@@ -8,7 +8,7 @@ import { api } from "../lib/api.js";
 import { clear, el, mount } from "../lib/dom.js";
 import type { Project, Task } from "../../shared/types/index.js";
 
-mountShell({ active: "timeline" });
+await mountShell({ active: "timeline" });
 
 const ZOOMS: { id: TimelineZoom; label: string }[] = [
   { id: "day", label: "Día" },

@@ -7,7 +7,7 @@ import { api } from "../lib/api.js";
 import { clear, el, mount } from "../lib/dom.js";
 import type { Insight, InsightSeverity } from "../../shared/types/index.js";
 
-mountShell({ active: "insights" });
+await mountShell({ active: "insights" });
 
 const SEVERITY_META: Record<InsightSeverity, { icon: string; label: string }> = {
   critical: { icon: "△", label: "Crítico" },

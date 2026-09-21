@@ -7,6 +7,7 @@ import { mountCommandPalette } from "./components/command-palette.js";
 import { mountFocusMode } from "./components/focus-mode.js";
 import { mountOnboarding } from "./components/onboarding.js";
 import { renderSidebar } from "./components/sidebar.js";
+import { logout, requireSession } from "./lib/auth.js";
 import { el, mount } from "./lib/dom.js";
 import { fechaLarga } from "./lib/format.js";
 import { connectWebSocket } from "./lib/ws.js";
@@ -16,13 +17,15 @@ export interface ShellOptions {
   active: string;
 }
 
-/** Monta el layout: sidebar + <main> con topbar. Devuelve el contenedor de página. */
-export function mountShell(options: ShellOptions): HTMLElement {
+/** Monta el layout: sidebar + <main> con topbar. Devuelve el contenedor de página.
+ *  Exige sesión activa: si no hay, redirige al login. */
+export async function mountShell(options: ShellOptions): Promise<HTMLElement> {
+  const user = await requireSession();
   const page = mount('[data-page-content]');
   const shell = el("div", { className: "app-shell" });
 
   const main = el("main", { className: "main", id: "main-content" });
-  main.append(renderTopbar());
+  main.append(renderTopbar(user.name));
 
   // Mueve el contenido declarado en el HTML dentro de <main>
   while (page.firstChild) main.append(page.firstChild);
@@ -63,7 +66,7 @@ function registerServiceWorker(): void {
   });
 }
 
-function renderTopbar(): HTMLElement {
+function renderTopbar(userName: string): HTMLElement {
   const topbar = el("header", { className: "topbar" });
 
   const date = el("span", { className: "topbar__date", textContent: fechaLarga() });
@@ -85,7 +88,16 @@ function renderTopbar(): HTMLElement {
     document.dispatchEvent(new CustomEvent("lifeos:command-palette"));
   });
 
-  right.append(paletteBtn, status);
+  const logoutBtn = el("button", {
+    className: "kbd-hint",
+    type: "button",
+    "aria-label": "Cerrar sesión",
+    title: `Cerrar sesión (${userName})`,
+    textContent: "⏻",
+  });
+  logoutBtn.addEventListener("click", () => void logout());
+
+  right.append(paletteBtn, status, logoutBtn);
   topbar.append(date, right);
   return topbar;
 }

@@ -11,7 +11,7 @@ import { horas, numero, porcentaje } from "../lib/format.js";
 import type { Resource, ResourceType } from "../../shared/types/index.js";
 import type { CapacityReport } from "../../engine/capacity.js";
 
-mountShell({ active: "resources" });
+await mountShell({ active: "resources" });
 
 const RESOURCE_META: Record<ResourceType, { label: string; icon: string; hint: string }> = {
   time: { label: "Tiempo", icon: "◌", hint: "Horas disponibles por semana" },

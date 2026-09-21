@@ -49,38 +49,39 @@ export interface ProjectInput {
   estimatedHours?: number | null;
 }
 
-async function assertGoalExists(goalId: string | null | undefined): Promise<void> {
+async function assertGoalExists(userId: string, goalId: string | null | undefined): Promise<void> {
   if (goalId === null || goalId === undefined) return;
-  const exists = await queryOne(`SELECT 1 FROM goals WHERE id = $1`, [goalId]);
+  const exists = await queryOne(`SELECT 1 FROM goals WHERE id = $1 AND user_id = $2`, [goalId, userId]);
   if (!exists) throw HttpError.badRequest(`El objetivo "${goalId}" no existe.`);
 }
 
-async function withRisk(project: Project): Promise<ProjectWithRisk> {
-  const risk = await getProjectRisk(project.id);
+async function withRisk(userId: string, project: Project): Promise<ProjectWithRisk> {
+  const risk = await getProjectRisk(userId, project.id);
   return { ...project, riskLevel: risk.level, riskScore: risk.score };
 }
 
-export async function listProjects(goalId?: string): Promise<ProjectWithRisk[]> {
+export async function listProjects(userId: string, goalId?: string): Promise<ProjectWithRisk[]> {
   const rows = goalId
-    ? await query<ProjectRow>(`SELECT * FROM projects WHERE goal_id = $1 ORDER BY created_at DESC`, [goalId])
-    : await query<ProjectRow>(`SELECT * FROM projects ORDER BY created_at DESC`);
-  return Promise.all(rows.map((row) => withRisk(toProject(row))));
+    ? await query<ProjectRow>(`SELECT * FROM projects WHERE user_id = $1 AND goal_id = $2 ORDER BY created_at DESC`, [userId, goalId])
+    : await query<ProjectRow>(`SELECT * FROM projects WHERE user_id = $1 ORDER BY created_at DESC`, [userId]);
+  return Promise.all(rows.map((row) => withRisk(userId, toProject(row))));
 }
 
-export async function getProject(id: string): Promise<ProjectWithRisk> {
-  const row = await queryOne<ProjectRow>(`SELECT * FROM projects WHERE id = $1`, [id]);
+export async function getProject(userId: string, id: string): Promise<ProjectWithRisk> {
+  const row = await queryOne<ProjectRow>(`SELECT * FROM projects WHERE id = $1 AND user_id = $2`, [id, userId]);
   if (!row) throw HttpError.notFound(`Proyecto "${id}" no encontrado.`);
-  return withRisk(toProject(row));
+  return withRisk(userId, toProject(row));
 }
 
-export async function createProject(input: ProjectInput & { title: string }): Promise<Project> {
-  await assertGoalExists(input.goalId);
+export async function createProject(userId: string, input: ProjectInput & { title: string }): Promise<Project> {
+  await assertGoalExists(userId, input.goalId);
   const id = newId("proj");
   await execute(
-    `INSERT INTO projects (id, goal_id, title, description, progress, status, priority, start_date, deadline, estimated_hours)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+    `INSERT INTO projects (id, user_id, goal_id, title, description, progress, status, priority, start_date, deadline, estimated_hours)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
     [
       id,
+      userId,
       input.goalId ?? null,
       input.title,
       input.description ?? null,
@@ -92,13 +93,13 @@ export async function createProject(input: ProjectInput & { title: string }): Pr
       input.estimatedHours ?? null,
     ],
   );
-  await logEvent("project_created", `Proyecto creado: "${input.title}"`, "project", id);
-  return getProject(id);
+  await logEvent(userId, "project_created", `Proyecto creado: "${input.title}"`, "project", id);
+  return getProject(userId, id);
 }
 
-export async function updateProject(id: string, input: ProjectInput): Promise<Project> {
-  const existing = await getProject(id);
-  if (input.goalId !== undefined) await assertGoalExists(input.goalId);
+export async function updateProject(userId: string, id: string, input: ProjectInput): Promise<Project> {
+  const existing = await getProject(userId, id);
+  if (input.goalId !== undefined) await assertGoalExists(userId, input.goalId);
 
   const merged = {
     goalId: input.goalId !== undefined ? input.goalId : existing.goalId,
@@ -118,7 +119,7 @@ export async function updateProject(id: string, input: ProjectInput): Promise<Pr
   await execute(
     `UPDATE projects SET goal_id = $1, title = $2, description = $3, progress = $4, status = $5,
        priority = $6, start_date = $7, deadline = $8, estimated_hours = $9, updated_at = now()
-     WHERE id = $10`,
+     WHERE id = $10 AND user_id = $11`,
     [
       merged.goalId,
       merged.title,
@@ -130,16 +131,17 @@ export async function updateProject(id: string, input: ProjectInput): Promise<Pr
       merged.deadline,
       merged.estimatedHours,
       id,
+      userId,
     ],
   );
 
   if (becameCompleted) {
-    await logEvent("project_completed", `Proyecto completado: "${merged.title}"`, "project", id);
+    await logEvent(userId, "project_completed", `Proyecto completado: "${merged.title}"`, "project", id);
   }
-  return getProject(id);
+  return getProject(userId, id);
 }
 
-export async function deleteProject(id: string): Promise<void> {
-  await getProject(id); // lanza 404 si no existe
-  await execute(`DELETE FROM projects WHERE id = $1`, [id]);
+export async function deleteProject(userId: string, id: string): Promise<void> {
+  await getProject(userId, id); // lanza 404 si no existe
+  await execute(`DELETE FROM projects WHERE id = $1 AND user_id = $2`, [id, userId]);
 }

@@ -9,7 +9,7 @@ import { api, ApiError } from "../lib/api.js";
 import { clear, el, mount } from "../lib/dom.js";
 import type { GoalWithProjects } from "../../shared/types/index.js";
 
-mountShell({ active: "objectives" });
+await mountShell({ active: "objectives" });
 
 type Filter = "active" | "completed" | "paused" | "all";
 let currentFilter: Filter = "active";

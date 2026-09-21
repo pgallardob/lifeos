@@ -1,8 +1,10 @@
 import { Router } from "express";
 import * as controller from "../controllers/tasks.controller.js";
 import { ah } from "../lib/async-handler.js";
+import { requireAuth } from "../lib/auth.js";
 
 export const tasksRouter = Router();
+tasksRouter.use(requireAuth);
 
 tasksRouter.get("/", ah(controller.list));
 tasksRouter.post("/", ah(controller.create));

@@ -4,13 +4,24 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 
 CREATE TABLE IF NOT EXISTS users (
+  id            TEXT PRIMARY KEY,
+  name          TEXT NOT NULL,
+  email         TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Sesiones: token opaco en cookie httpOnly → user_id
+CREATE TABLE IF NOT EXISTS sessions (
   id         TEXT PRIMARY KEY,
-  name       TEXT NOT NULL,
+  user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  expires_at TIMESTAMPTZ NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS goals (
   id            TEXT PRIMARY KEY,
+  user_id       TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   title         TEXT NOT NULL,
   description   TEXT,
   progress      DOUBLE PRECISION NOT NULL DEFAULT 0 CHECK (progress BETWEEN 0 AND 100),
@@ -28,6 +39,7 @@ CREATE TABLE IF NOT EXISTS goals (
 
 CREATE TABLE IF NOT EXISTS projects (
   id              TEXT PRIMARY KEY,
+  user_id         TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   goal_id         TEXT REFERENCES goals(id) ON DELETE SET NULL,
   title           TEXT NOT NULL,
   description     TEXT,
@@ -46,6 +58,7 @@ CREATE INDEX IF NOT EXISTS idx_projects_goal ON projects(goal_id);
 
 CREATE TABLE IF NOT EXISTS tasks (
   id              TEXT PRIMARY KEY,
+  user_id         TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   project_id      TEXT REFERENCES projects(id) ON DELETE CASCADE,
   title           TEXT NOT NULL,
   description     TEXT,
@@ -68,6 +81,7 @@ CREATE INDEX IF NOT EXISTS idx_tasks_due     ON tasks(due_date);
 -- Dependencias entre tareas: task_id queda bloqueada hasta completar depends_on_task_id
 CREATE TABLE IF NOT EXISTS dependencies (
   id                 TEXT PRIMARY KEY,
+  user_id            TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   task_id            TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
   depends_on_task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
   created_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -79,16 +93,19 @@ CREATE INDEX IF NOT EXISTS idx_deps_on   ON dependencies(depends_on_task_id);
 
 CREATE TABLE IF NOT EXISTS resources (
   id         TEXT PRIMARY KEY,
-  type       TEXT NOT NULL UNIQUE
+  user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  type       TEXT NOT NULL
              CHECK (type IN ('time','money','energy','focus')),
   available  DOUBLE PRECISION NOT NULL DEFAULT 0,
   capacity   DOUBLE PRECISION NOT NULL DEFAULT 0,
   unit       TEXT NOT NULL DEFAULT '',
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT resources_user_type_key UNIQUE (user_id, type)
 );
 
 CREATE TABLE IF NOT EXISTS scenarios (
   id          TEXT PRIMARY KEY,
+  user_id     TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   name        TEXT NOT NULL,
   description TEXT,
   variables   TEXT NOT NULL DEFAULT '{}', -- JSON con ScenarioVariables
@@ -98,6 +115,7 @@ CREATE TABLE IF NOT EXISTS scenarios (
 
 CREATE TABLE IF NOT EXISTS milestones (
   id         TEXT PRIMARY KEY,
+  user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   project_id TEXT REFERENCES projects(id) ON DELETE CASCADE,
   goal_id    TEXT REFERENCES goals(id) ON DELETE CASCADE,
   title      TEXT NOT NULL,
@@ -108,6 +126,7 @@ CREATE INDEX IF NOT EXISTS idx_milestones_date ON milestones(date);
 
 CREATE TABLE IF NOT EXISTS insights (
   id          TEXT PRIMARY KEY,
+  user_id     TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   severity    TEXT NOT NULL DEFAULT 'info'
               CHECK (severity IN ('info','warning','critical','positive')),
   title       TEXT NOT NULL,
@@ -118,6 +137,7 @@ CREATE TABLE IF NOT EXISTS insights (
 
 CREATE TABLE IF NOT EXISTS events (
   id          TEXT PRIMARY KEY,
+  user_id     TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   type        TEXT NOT NULL,
   message     TEXT NOT NULL,
   entity_kind TEXT CHECK (entity_kind IN ('goal','project','task','scenario','resource')),
@@ -125,3 +145,6 @@ CREATE TABLE IF NOT EXISTS events (
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_events_created ON events(created_at);
+
+-- Los índices por user_id (idx_*_user) los crea la migración 003 para
+-- mantener compatibilidad con bases de datos creadas antes del multi-usuario.

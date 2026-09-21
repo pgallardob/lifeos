@@ -27,29 +27,29 @@ function parseInput(body: Body, partial: boolean): projectService.ProjectInput {
 
 export async function list(req: Request, res: Response): Promise<void> {
   const goalId = typeof req.query.goalId === "string" ? req.query.goalId : undefined;
-  res.json(await projectService.listProjects(goalId));
+  res.json(await projectService.listProjects(req.userId, goalId));
 }
 
 export async function get(req: Request, res: Response): Promise<void> {
-  res.json(await projectService.getProject(req.params.id!));
+  res.json(await projectService.getProject(req.userId, req.params.id!));
 }
 
 export async function create(req: Request, res: Response): Promise<void> {
-  const project = await projectService.createProject(parseInput(req.body as Body, false));
+  const project = await projectService.createProject(req.userId, parseInput(req.body as Body, false));
   res.status(201).json(project);
 }
 
 export async function update(req: Request, res: Response): Promise<void> {
-  const project = await projectService.updateProject(req.params.id!, parseInput(req.body as Body, true));
+  const project = await projectService.updateProject(req.userId, req.params.id!, parseInput(req.body as Body, true));
   res.json(project);
 }
 
 export async function remove(req: Request, res: Response): Promise<void> {
-  await projectService.deleteProject(req.params.id!);
+  await projectService.deleteProject(req.userId, req.params.id!);
   res.status(204).end();
 }
 
 export async function risk(req: Request, res: Response): Promise<void> {
-  await projectService.getProject(req.params.id!); // 404 si no existe
-  res.json(await getProjectRisk(req.params.id!));
+  await projectService.getProject(req.userId, req.params.id!); // 404 si no existe
+  res.json(await getProjectRisk(req.userId, req.params.id!));
 }

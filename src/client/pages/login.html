@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0a0e14" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="LifeOS" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <title>LifeOS — Entrar</title>
+    <link rel="stylesheet" href="../styles/pico.css" />
+    <link rel="stylesheet" href="../styles/theme.css" />
+    <link rel="stylesheet" href="../styles/components.css" />
+    <link rel="stylesheet" href="../styles/auth.css" />
+  </head>
+  <body>
+    <main class="auth">
+      <div class="auth__card">
+        <div class="auth__logo mono">◉ LIFEOS</div>
+        <p class="auth__sub">Tu sistema operativo de vida</p>
+
+        <div class="auth__tabs" role="tablist">
+          <button id="tab-login" class="auth__tab auth__tab--active" role="tab" aria-selected="true" type="button">Entrar</button>
+          <button id="tab-register" class="auth__tab" role="tab" aria-selected="false" type="button">Crear cuenta</button>
+        </div>
+
+        <form id="form-login" class="auth__form" novalidate>
+          <label>
+            Email
+            <input name="email" type="email" autocomplete="email" required placeholder="tu@email.com" />
+          </label>
+          <label>
+            Contraseña
+            <input name="password" type="password" autocomplete="current-password" required minlength="6" placeholder="••••••" />
+          </label>
+          <p class="auth__error" id="login-error" role="alert" hidden></p>
+          <button class="btn btn--primary auth__submit" type="submit">Entrar</button>
+        </form>
+
+        <form id="form-register" class="auth__form" hidden novalidate>
+          <label>
+            Nombre
+            <input name="name" type="text" autocomplete="name" required placeholder="Tu nombre" />
+          </label>
+          <label>
+            Email
+            <input name="email" type="email" autocomplete="email" required placeholder="tu@email.com" />
+          </label>
+          <label>
+            Contraseña
+            <input name="password" type="password" autocomplete="new-password" required minlength="6" placeholder="Mínimo 6 caracteres" />
+          </label>
+          <p class="auth__error" id="register-error" role="alert" hidden></p>
+          <button class="btn btn--primary auth__submit" type="submit">Crear cuenta</button>
+        </form>
+      </div>
+    </main>
+    <script type="module" src="./login.ts"></script>
+  </body>
+</html>

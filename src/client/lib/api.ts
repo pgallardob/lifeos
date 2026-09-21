@@ -15,6 +15,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     headers: { "Content-Type": "application/json" },
     ...init,
   });
+  // Sesión expirada o inexistente → al login (excepto si ya estamos ahí).
+  if (res.status === 401 && !location.pathname.endsWith("/login.html")) {
+    window.location.href = "/pages/login.html";
+    return new Promise<T>(() => {});
+  }
   if (!res.ok) {
     let message = `Error ${res.status}`;
     try {

@@ -10,6 +10,8 @@ import { resourcesRouter } from "./routes/resources.routes.js";
 import { capacityRouter } from "./routes/capacity.routes.js";
 import { scenariosRouter } from "./routes/scenarios.routes.js";
 import { insightsRouter } from "./routes/insights.routes.js";
+import { authRouter } from "./routes/auth.routes.js";
+import { HttpError } from "./lib/http-error.js";
 import { initWebSocket } from "./ws.js";
 
 const app = express();
@@ -21,7 +23,10 @@ app.get("/api/health", (_req: Request, res: Response) => {
   res.json({ status: "ok", service: "lifeos", time: new Date().toISOString() });
 });
 
-// ─── Rutas de la API ──────────────────────────────────────────────────────────
+// ─── Autenticación (público) ──────────────────────────────────────────────────
+app.use("/api/auth", authRouter);
+
+// ─── Rutas de la API (protegidas por sesión) ──────────────────────────────────
 app.use("/api/goals", goalsRouter);
 app.use("/api/projects", projectsRouter);
 app.use("/api/tasks", tasksRouter);
@@ -42,6 +47,10 @@ app.use("/api", (_req: Request, res: Response) => {
 
 // ─── Manejo centralizado de errores ───────────────────────────────────────────
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+  if (err instanceof HttpError) {
+    res.status(err.status).json({ error: err.message });
+    return;
+  }
   const message = err instanceof Error ? err.message : "Error interno";
   if (!config.isProduction) {
     console.error("[lifeos] error:", err);

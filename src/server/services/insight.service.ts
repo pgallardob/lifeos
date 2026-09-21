@@ -5,38 +5,40 @@ import { getCapacityReport } from "./capacity.service.js";
 import { getProjectRisk } from "./risk.service.js";
 
 /** Genera los insights actuales a partir del estado real de la BD. */
-export async function getInsights(): Promise<Insight[]> {
-  const capacity = await getCapacityReport();
+export async function getInsights(userId: string): Promise<Insight[]> {
+  const capacity = await getCapacityReport(userId);
 
   const activeProjects = await query<{ id: string; title: string }>(
-    `SELECT id, title FROM projects WHERE status = 'active'`,
+    `SELECT id, title FROM projects WHERE status = 'active' AND user_id = $1`,
+    [userId],
   );
   const projectRisks = await Promise.all(
     activeProjects.map(async (p) => ({
       projectId: p.id,
       title: p.title,
-      risk: await getProjectRisk(p.id),
+      risk: await getProjectRisk(userId, p.id),
     })),
   );
 
   const weekAgo = new Date(Date.now() - 7 * 86_400_000).toISOString();
   const completedLastWeek = (await queryOne<{ n: number }>(
-    `SELECT COUNT(*)::int AS n FROM tasks WHERE completed_at >= $1`,
-    [weekAgo],
+    `SELECT COUNT(*)::int AS n FROM tasks WHERE completed_at >= $1 AND user_id = $2`,
+    [weekAgo, userId],
   ))!;
 
   const taskStats = (await queryOne<{ pending: number; overdue: number }>(
     `SELECT
        COUNT(*) FILTER (WHERE status != 'completed')::int AS pending,
        COUNT(*) FILTER (WHERE status != 'completed' AND due_date IS NOT NULL AND due_date < $1)::int AS overdue
-     FROM tasks`,
-    [new Date().toISOString().slice(0, 10)],
+     FROM tasks WHERE user_id = $2`,
+    [new Date().toISOString().slice(0, 10), userId],
   ))!;
 
   const goalsWithoutProjects = await query<{ id: string; title: string }>(
     `SELECT g.id, g.title FROM goals g
-     WHERE g.status = 'active'
-       AND NOT EXISTS (SELECT 1 FROM projects p WHERE p.goal_id = g.id)`,
+     WHERE g.status = 'active' AND g.user_id = $1
+       AND NOT EXISTS (SELECT 1 FROM projects p WHERE p.goal_id = g.id AND p.user_id = $1)`,
+    [userId],
   );
 
   return generateInsights({

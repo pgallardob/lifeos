@@ -29,12 +29,13 @@ function toScenario(row: ScenarioRow): Scenario {
 }
 
 /** Construye el estado actual desde la BD y ejecuta el motor de simulación. */
-export async function runScenario(name: string, description: string | null, variables: ScenarioVariables): Promise<SimulationResult> {
+export async function runScenario(userId: string, name: string, description: string | null, variables: ScenarioVariables): Promise<SimulationResult> {
   const goals = await query<{
     id: string; title: string; target_value: number | null;
     current_value: number; unit: string | null; target_date: string | null;
   }>(
-    `SELECT id, title, target_value, current_value, unit, target_date FROM goals WHERE status = 'active'`,
+    `SELECT id, title, target_value, current_value, unit, target_date FROM goals WHERE status = 'active' AND user_id = $1`,
+    [userId],
   );
   const simGoals: SimGoal[] = goals.map((g) => ({
     id: g.id,
@@ -52,8 +53,9 @@ export async function runScenario(name: string, description: string | null, vari
             COALESCE(SUM(CASE WHEN t.status != 'completed' THEN t.estimated_hours ELSE 0 END), 0) AS pending_hours
      FROM projects p
      LEFT JOIN tasks t ON t.project_id = p.id
-     WHERE p.status = 'active'
+     WHERE p.status = 'active' AND p.user_id = $1
      GROUP BY p.id`,
+    [userId],
   );
   const simProjects: SimProject[] = projects.map((p) => ({
     id: p.id,
@@ -63,7 +65,8 @@ export async function runScenario(name: string, description: string | null, vari
   }));
 
   const resources = await query<{ type: string; available: number }>(
-    `SELECT type, available FROM resources`,
+    `SELECT type, available FROM resources WHERE user_id = $1`,
+    [userId],
   );
   const res = (type: string) => resources.find((r) => r.type === type)?.available ?? 0;
 
@@ -77,22 +80,25 @@ export async function runScenario(name: string, description: string | null, vari
 
   const id = newId("scn");
   await execute(
-    `INSERT INTO scenarios (id, name, description, variables, result) VALUES ($1, $2, $3, $4, $5)`,
-    [id, name, description, JSON.stringify(variables), JSON.stringify(result)],
+    `INSERT INTO scenarios (id, user_id, name, description, variables, result) VALUES ($1, $2, $3, $4, $5, $6)`,
+    [id, userId, name, description, JSON.stringify(variables), JSON.stringify(result)],
   );
 
-  await logEvent("scenario_created", `Escenario creado: "${name}"`, "scenario", id);
+  await logEvent(userId, "scenario_created", `Escenario creado: "${name}"`, "scenario", id);
 
   return { scenarioId: id, ...result };
 }
 
-export async function listScenarios(): Promise<Scenario[]> {
-  const rows = await query<ScenarioRow>(`SELECT * FROM scenarios ORDER BY created_at DESC`);
+export async function listScenarios(userId: string): Promise<Scenario[]> {
+  const rows = await query<ScenarioRow>(
+    `SELECT * FROM scenarios WHERE user_id = $1 ORDER BY created_at DESC`,
+    [userId],
+  );
   return rows.map(toScenario);
 }
 
-export async function getScenario(id: string): Promise<Scenario & { result: SimulationResult | null }> {
-  const row = await queryOne<ScenarioRow>(`SELECT * FROM scenarios WHERE id = $1`, [id]);
+export async function getScenario(userId: string, id: string): Promise<Scenario & { result: SimulationResult | null }> {
+  const row = await queryOne<ScenarioRow>(`SELECT * FROM scenarios WHERE id = $1 AND user_id = $2`, [id, userId]);
   if (!row) throw HttpError.notFound(`Escenario "${id}" no encontrado.`);
   return {
     ...toScenario(row),

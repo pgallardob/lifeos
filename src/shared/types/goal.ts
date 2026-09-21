@@ -13,7 +13,7 @@ export interface Goal {
   targetValue: number | null;
   /** Valor actual medible. */
   currentValue: number;
-  /** Unidad del valor medible (p. ej. "USD", "kg", "horas"). */
+  /** Unidad del valor medible (p. ej. "CLP", "kg", "horas"). */
   unit: string | null;
   createdAt: ISODateString;
   updatedAt: ISODateString;

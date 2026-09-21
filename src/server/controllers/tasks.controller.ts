@@ -31,25 +31,25 @@ export async function list(req: Request, res: Response): Promise<void> {
     typeof statusQ === "string" && (STATUSES as readonly string[]).includes(statusQ)
       ? (statusQ as TaskStatus)
       : undefined;
-  res.json(await taskService.listTasks({ projectId, status }));
+  res.json(await taskService.listTasks(req.userId, { projectId, status }));
 }
 
 export async function get(req: Request, res: Response): Promise<void> {
-  res.json(await taskService.getTask(req.params.id!));
+  res.json(await taskService.getTask(req.userId, req.params.id!));
 }
 
 export async function create(req: Request, res: Response): Promise<void> {
-  const task = await taskService.createTask(parseInput(req.body as Body, false));
+  const task = await taskService.createTask(req.userId, parseInput(req.body as Body, false));
   res.status(201).json(task);
 }
 
 export async function update(req: Request, res: Response): Promise<void> {
-  const task = await taskService.updateTask(req.params.id!, parseInput(req.body as Body, true));
+  const task = await taskService.updateTask(req.userId, req.params.id!, parseInput(req.body as Body, true));
   res.json(task);
 }
 
 export async function remove(req: Request, res: Response): Promise<void> {
-  await taskService.deleteTask(req.params.id!);
+  await taskService.deleteTask(req.userId, req.params.id!);
   res.status(204).end();
 }
 
@@ -57,7 +57,7 @@ export async function remove(req: Request, res: Response): Promise<void> {
 
 export async function listDependencies(req: Request, res: Response): Promise<void> {
   const taskId = typeof req.query.taskId === "string" ? req.query.taskId : undefined;
-  res.json(await taskService.listDependencies(taskId));
+  res.json(await taskService.listDependencies(req.userId, taskId));
 }
 
 export async function addDependency(req: Request, res: Response): Promise<void> {
@@ -65,11 +65,11 @@ export async function addDependency(req: Request, res: Response): Promise<void> 
   if (typeof dependsOnTaskId !== "string" || !dependsOnTaskId) {
     throw HttpError.badRequest('El campo "dependsOnTaskId" es obligatorio.');
   }
-  const dep = await taskService.addDependency(req.params.id!, dependsOnTaskId);
+  const dep = await taskService.addDependency(req.userId, req.params.id!, dependsOnTaskId);
   res.status(201).json(dep);
 }
 
 export async function removeDependency(req: Request, res: Response): Promise<void> {
-  await taskService.removeDependency(req.params.id!, req.params.dependsOnId!);
+  await taskService.removeDependency(req.userId, req.params.id!, req.params.dependsOnId!);
   res.status(204).end();
 }

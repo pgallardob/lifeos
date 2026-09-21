@@ -27,14 +27,14 @@ export async function run(req: Request, res: Response): Promise<void> {
   if (Object.values(variables).every((v) => v === undefined)) {
     throw HttpError.badRequest("El escenario debe modificar al menos una variable.");
   }
-  const result = await simulatorService.runScenario(name, description, variables);
+  const result = await simulatorService.runScenario(req.userId, name, description, variables);
   res.status(201).json(result);
 }
 
-export async function list(_req: Request, res: Response): Promise<void> {
-  res.json(await simulatorService.listScenarios());
+export async function list(req: Request, res: Response): Promise<void> {
+  res.json(await simulatorService.listScenarios(req.userId));
 }
 
 export async function get(req: Request, res: Response): Promise<void> {
-  res.json(await simulatorService.getScenario(req.params.id!));
+  res.json(await simulatorService.getScenario(req.userId, req.params.id!));
 }

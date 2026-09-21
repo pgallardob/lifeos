@@ -22,7 +22,7 @@ const names = tables.map((r) => r.name);
 console.log("[db:check] tablas:", names.join(", "));
 
 const expected = [
-  "users", "goals", "projects", "tasks", "dependencies",
+  "users", "sessions", "goals", "projects", "tasks", "dependencies",
   "resources", "scenarios", "milestones", "insights", "events", "_migrations",
 ];
 const missing = expected.filter((t) => !names.includes(t));

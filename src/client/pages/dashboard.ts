@@ -16,7 +16,7 @@ import type {
   Task,
 } from "../../shared/types/index.js";
 
-mountShell({ active: "overview" });
+await mountShell({ active: "overview" });
 
 interface DashboardData {
   goals: GoalWithProjects[];

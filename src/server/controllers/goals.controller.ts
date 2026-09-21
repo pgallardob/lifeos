@@ -24,30 +24,30 @@ function parseInput(body: Body, partial: boolean): goalService.GoalInput {
   };
 }
 
-export async function list(_req: Request, res: Response): Promise<void> {
-  const status = _req.query.status;
+export async function list(req: Request, res: Response): Promise<void> {
+  const status = req.query.status;
   const filter =
     typeof status === "string" && (STATUSES as readonly string[]).includes(status)
       ? (status as EntityStatus)
       : undefined;
-  res.json(await goalService.listGoals(filter));
+  res.json(await goalService.listGoals(req.userId, filter));
 }
 
 export async function get(req: Request, res: Response): Promise<void> {
-  res.json(await goalService.getGoal(req.params.id!));
+  res.json(await goalService.getGoal(req.userId, req.params.id!));
 }
 
 export async function create(req: Request, res: Response): Promise<void> {
-  const goal = await goalService.createGoal(parseInput(req.body as Body, false));
+  const goal = await goalService.createGoal(req.userId, parseInput(req.body as Body, false));
   res.status(201).json(goal);
 }
 
 export async function update(req: Request, res: Response): Promise<void> {
-  const goal = await goalService.updateGoal(req.params.id!, parseInput(req.body as Body, true));
+  const goal = await goalService.updateGoal(req.userId, req.params.id!, parseInput(req.body as Body, true));
   res.json(goal);
 }
 
 export async function remove(req: Request, res: Response): Promise<void> {
-  await goalService.deleteGoal(req.params.id!);
+  await goalService.deleteGoal(req.userId, req.params.id!);
   res.status(204).end();
 }

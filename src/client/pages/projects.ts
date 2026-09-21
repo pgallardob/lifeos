@@ -17,7 +17,7 @@ import type {
   TaskStatus,
 } from "../../shared/types/index.js";
 
-mountShell({ active: "projects" });
+await mountShell({ active: "projects" });
 
 let projects: ProjectWithRisk[] = [];
 let goals: GoalWithProjects[] = [];

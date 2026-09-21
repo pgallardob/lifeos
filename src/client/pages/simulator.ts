@@ -11,7 +11,7 @@ import { clear, el, mount } from "../lib/dom.js";
 import { fechaCorta } from "../lib/format.js";
 import type { Scenario, SimulationResult } from "../../shared/types/index.js";
 
-mountShell({ active: "simulator" });
+await mountShell({ active: "simulator" });
 
 const RISK_TEXT: Record<string, string> = {
   low: "RIESGO BAJO",

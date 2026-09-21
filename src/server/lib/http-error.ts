@@ -13,6 +13,10 @@ export class HttpError extends Error {
     return new HttpError(400, message, details);
   }
 
+  static unauthorized(message = "No autenticado"): HttpError {
+    return new HttpError(401, message);
+  }
+
   static notFound(message = "Recurso no encontrado"): HttpError {
     return new HttpError(404, message);
   }

@@ -23,16 +23,23 @@ function toResource(row: ResourceRow): Resource {
   };
 }
 
-export async function listResources(): Promise<Resource[]> {
-  const rows = await query<ResourceRow>(`SELECT * FROM resources ORDER BY id`);
+export async function listResources(userId: string): Promise<Resource[]> {
+  const rows = await query<ResourceRow>(
+    `SELECT * FROM resources WHERE user_id = $1 ORDER BY type`,
+    [userId],
+  );
   return rows.map(toResource);
 }
 
 export async function updateResource(
+  userId: string,
   type: ResourceType,
   input: { available?: number | null; capacity?: number | null; unit?: string | null },
 ): Promise<Resource> {
-  const row = await queryOne<ResourceRow>(`SELECT * FROM resources WHERE type = $1`, [type]);
+  const row = await queryOne<ResourceRow>(
+    `SELECT * FROM resources WHERE type = $1 AND user_id = $2`,
+    [type, userId],
+  );
   if (!row) throw HttpError.notFound(`Recurso "${type}" no encontrado.`);
 
   const available = input.available ?? row.available;
@@ -43,12 +50,12 @@ export async function updateResource(
 
   await execute(
     `UPDATE resources SET available = $1, capacity = $2, unit = $3, updated_at = now()
-     WHERE type = $4`,
-    [available, capacity, input.unit ?? row.unit, type],
+     WHERE type = $4 AND user_id = $5`,
+    [available, capacity, input.unit ?? row.unit, type, userId],
   );
 
-  await logEvent("resource_updated", `Recurso "${type}" actualizado`, "resource", row.id);
+  await logEvent(userId, "resource_updated", `Recurso "${type}" actualizado`, "resource", row.id);
   return toResource(
-    (await queryOne<ResourceRow>(`SELECT * FROM resources WHERE type = $1`, [type]))!,
+    (await queryOne<ResourceRow>(`SELECT * FROM resources WHERE type = $1 AND user_id = $2`, [type, userId]))!,
   );
 }

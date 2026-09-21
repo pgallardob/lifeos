@@ -48,39 +48,40 @@ export interface GoalInput {
   unit?: string | null;
 }
 
-export async function listGoals(status?: EntityStatus): Promise<GoalWithProjects[]> {
+export async function listGoals(userId: string, status?: EntityStatus): Promise<GoalWithProjects[]> {
   const rows = status
-    ? await query<GoalRow>(`SELECT * FROM goals WHERE status = $1 ORDER BY created_at DESC`, [status])
-    : await query<GoalRow>(`SELECT * FROM goals ORDER BY created_at DESC`);
+    ? await query<GoalRow>(`SELECT * FROM goals WHERE user_id = $1 AND status = $2 ORDER BY created_at DESC`, [userId, status])
+    : await query<GoalRow>(`SELECT * FROM goals WHERE user_id = $1 ORDER BY created_at DESC`, [userId]);
 
   return Promise.all(
     rows.map(async (row) => {
       const projects = await query<{ id: string }>(
-        `SELECT id FROM projects WHERE goal_id = $1 ORDER BY created_at ASC`,
-        [row.id],
+        `SELECT id FROM projects WHERE goal_id = $1 AND user_id = $2 ORDER BY created_at ASC`,
+        [row.id, userId],
       );
       return { ...toGoal(row), projects: projects.map((p) => p.id) };
     }),
   );
 }
 
-export async function getGoal(id: string): Promise<GoalWithProjects> {
-  const row = await queryOne<GoalRow>(`SELECT * FROM goals WHERE id = $1`, [id]);
+export async function getGoal(userId: string, id: string): Promise<GoalWithProjects> {
+  const row = await queryOne<GoalRow>(`SELECT * FROM goals WHERE id = $1 AND user_id = $2`, [id, userId]);
   if (!row) throw HttpError.notFound(`Objetivo "${id}" no encontrado.`);
   const projects = await query<{ id: string }>(
-    `SELECT id FROM projects WHERE goal_id = $1 ORDER BY created_at ASC`,
-    [id],
+    `SELECT id FROM projects WHERE goal_id = $1 AND user_id = $2 ORDER BY created_at ASC`,
+    [id, userId],
   );
   return { ...toGoal(row), projects: projects.map((p) => p.id) };
 }
 
-export async function createGoal(input: GoalInput & { title: string }): Promise<Goal> {
+export async function createGoal(userId: string, input: GoalInput & { title: string }): Promise<Goal> {
   const id = newId("goal");
   await execute(
-    `INSERT INTO goals (id, title, description, progress, target_date, status, priority, target_value, current_value, unit)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+    `INSERT INTO goals (id, user_id, title, description, progress, target_date, status, priority, target_value, current_value, unit)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
     [
       id,
+      userId,
       input.title,
       input.description ?? null,
       input.progress ?? 0,
@@ -92,12 +93,12 @@ export async function createGoal(input: GoalInput & { title: string }): Promise<
       input.unit ?? null,
     ],
   );
-  await logEvent("goal_created", `Objetivo creado: "${input.title}"`, "goal", id);
-  return getGoal(id);
+  await logEvent(userId, "goal_created", `Objetivo creado: "${input.title}"`, "goal", id);
+  return getGoal(userId, id);
 }
 
-export async function updateGoal(id: string, input: GoalInput): Promise<Goal> {
-  const existing = await getGoal(id);
+export async function updateGoal(userId: string, id: string, input: GoalInput): Promise<Goal> {
+  const existing = await getGoal(userId, id);
 
   const merged = {
     title: input.title ?? existing.title,
@@ -116,7 +117,7 @@ export async function updateGoal(id: string, input: GoalInput): Promise<Goal> {
   await execute(
     `UPDATE goals SET title = $1, description = $2, progress = $3, target_date = $4, status = $5,
        priority = $6, target_value = $7, current_value = $8, unit = $9, updated_at = now()
-     WHERE id = $10`,
+     WHERE id = $10 AND user_id = $11`,
     [
       merged.title,
       merged.description,
@@ -128,16 +129,17 @@ export async function updateGoal(id: string, input: GoalInput): Promise<Goal> {
       merged.currentValue,
       merged.unit,
       id,
+      userId,
     ],
   );
 
   if (becameCompleted) {
-    await logEvent("goal_completed", `Objetivo completado: "${merged.title}"`, "goal", id);
+    await logEvent(userId, "goal_completed", `Objetivo completado: "${merged.title}"`, "goal", id);
   }
-  return getGoal(id);
+  return getGoal(userId, id);
 }
 
-export async function deleteGoal(id: string): Promise<void> {
-  await getGoal(id); // lanza 404 si no existe
-  await execute(`DELETE FROM goals WHERE id = $1`, [id]);
+export async function deleteGoal(userId: string, id: string): Promise<void> {
+  await getGoal(userId, id); // lanza 404 si no existe
+  await execute(`DELETE FROM goals WHERE id = $1 AND user_id = $2`, [id, userId]);
 }

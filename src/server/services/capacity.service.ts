@@ -2,19 +2,22 @@ import { computeCapacity, type CapacityReport } from "../../engine/capacity.js";
 import { query, queryOne } from "../database/database.js";
 
 /** Construye el informe de capacidad a partir del estado real de la BD. */
-export async function getCapacityReport(): Promise<CapacityReport> {
+export async function getCapacityReport(userId: string): Promise<CapacityReport> {
   const resources = await query<{ type: string; available: number }>(
-    `SELECT type, available FROM resources`,
+    `SELECT type, available FROM resources WHERE user_id = $1`,
+    [userId],
   );
   const res = (type: string) => resources.find((r) => r.type === type)?.available ?? 0;
 
   const pending = (await queryOne<{ hours: number; n: number }>(
     `SELECT COALESCE(SUM(estimated_hours), 0) AS hours, COUNT(*)::int AS n
-     FROM tasks WHERE status != 'completed'`,
+     FROM tasks WHERE status != 'completed' AND user_id = $1`,
+    [userId],
   ))!;
 
   const activeProjects = (await queryOne<{ n: number }>(
-    `SELECT COUNT(*)::int AS n FROM projects WHERE status = 'active'`,
+    `SELECT COUNT(*)::int AS n FROM projects WHERE status = 'active' AND user_id = $1`,
+    [userId],
   ))!;
 
   // Proyectos cuyo rango temporal incluye esta semana
@@ -27,10 +30,10 @@ export async function getCapacityReport(): Promise<CapacityReport> {
 
   const overlapping = (await queryOne<{ n: number }>(
     `SELECT COUNT(*)::int AS n FROM projects
-     WHERE status = 'active'
-       AND (start_date IS NULL OR start_date <= $1)
-       AND (deadline IS NULL OR deadline >= $2)`,
-    [we, ws],
+     WHERE status = 'active' AND user_id = $1
+       AND (start_date IS NULL OR start_date <= $2)
+       AND (deadline IS NULL OR deadline >= $3)`,
+    [userId, we, ws],
   ))!;
 
   return computeCapacity({
