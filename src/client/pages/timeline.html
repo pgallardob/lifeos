@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0a0e14" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="LifeOS" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <title>LifeOS — Cronología</title>
+    <link rel="stylesheet" href="../styles/pico.css" />
+    <link rel="stylesheet" href="../styles/theme.css" />
+    <link rel="stylesheet" href="../styles/components.css" />
+    <link rel="stylesheet" href="../styles/dashboard.css" />
+    <link rel="stylesheet" href="../styles/animations.css" />
+    <link rel="stylesheet" href="../styles/responsive.css" />
+  </head>
+  <body data-page="timeline">
+    <div data-page-content>
+      <header class="page-head">
+        <div>
+          <h1 class="greeting">Cronología</h1>
+          <p class="greeting-sub">Tus proyectos y tareas en el tiempo.</p>
+        </div>
+        <div class="tabs" id="zoom-tabs" role="tablist" aria-label="Nivel de zoom"></div>
+      </header>
+
+      <section class="panel" aria-label="Línea temporal">
+        <div id="timeline-container"></div>
+      </section>
+    </div>
+
+    <script type="module" src="./timeline.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,20 @@
+# LifeOS — despliegue en Render (https://render.com)
+# Blueprint: conecta el repo y Render crea el servicio automáticamente.
+# DATABASE_URL se marca como secreto: configúralo en el dashboard de Render
+# con la connection string de Neon (Pooled connection).
+
+services:
+  - type: web
+    name: lifeos
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false # secreto — se define en el dashboard de Render
+      # Render asigna PORT automáticamente; el servidor lo lee de process.env.PORT.
+      # No definir HOST: en producción el default es 0.0.0.0.

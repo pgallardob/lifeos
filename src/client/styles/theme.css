@@ -1,0 +1,109 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   LifeOS — Tema: futurismo minimalista (secciones 8–11 del documento)
+   Los colores representan información, no decoración.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";
+
+:root {
+  /* Paleta (sección 9) */
+  --background: #07090d;
+  --surface: #0d1117;
+  --surface-2: #131923;
+  --text: #f5f7fa;
+  --text-muted: #7d8796;
+  --primary: #7c5cff;
+  --cyan: #00e5ff;
+  --success: #3dff9a;
+  --warning: #ffc857;
+  --danger: #ff5577;
+
+  /* Derivados */
+  --border: #1c2532;
+  --border-subtle: #141b26;
+  --glow-primary: rgba(124, 92, 255, 0.35);
+  --glow-cyan: rgba(0, 229, 255, 0.25);
+
+  /* Tipografía (sección 11) */
+  --font-ui: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Ritmo */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --radius: 10px;
+  --radius-sm: 6px;
+
+  /* Animaciones (sección 24) */
+  --dur-btn: 0.15s;
+  --dur-card: 0.25s;
+  --dur-panel: 0.4s;
+  --dur-viz: 0.7s;
+
+  /* Pico overrides */
+  --pico-font-family: var(--font-ui);
+  --pico-background-color: var(--background);
+  --pico-color: var(--text);
+  --pico-muted-color: var(--text-muted);
+  --pico-primary: var(--primary);
+  --pico-primary-background: var(--primary);
+  --pico-primary-hover-background: #8f73ff;
+  --pico-card-background-color: var(--surface);
+  --pico-card-border-color: var(--border);
+  --pico-border-radius: var(--radius);
+  --pico-form-element-background-color: var(--surface-2);
+  --pico-form-element-border-color: var(--border);
+  --pico-form-element-color: var(--text);
+}
+
+html {
+  background-color: var(--background);
+}
+
+body {
+  font-family: var(--font-ui);
+  color: var(--text);
+  background: var(--background);
+  min-height: 100vh;
+}
+
+/* Texto técnico/monoespaciado */
+.mono,
+code,
+kbd {
+  font-family: var(--font-mono);
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+/* Etiquetas técnicas en mayúsculas (OBJECTIVE_001, SYSTEM_STATUS…) */
+.label {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Punto de estado */
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 8px var(--success);
+}
+.status-dot--warning { background: var(--warning); box-shadow: 0 0 8px var(--warning); }
+.status-dot--danger  { background: var(--danger);  box-shadow: 0 0 8px var(--danger); }

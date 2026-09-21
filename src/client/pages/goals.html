@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0a0e14" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="LifeOS" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <title>LifeOS — Objetivos</title>
+    <link rel="stylesheet" href="../styles/pico.css" />
+    <link rel="stylesheet" href="../styles/theme.css" />
+    <link rel="stylesheet" href="../styles/components.css" />
+    <link rel="stylesheet" href="../styles/dashboard.css" />
+    <link rel="stylesheet" href="../styles/animations.css" />
+    <link rel="stylesheet" href="../styles/responsive.css" />
+  </head>
+  <body data-page="objectives">
+    <div data-page-content>
+      <header class="page-head">
+        <div>
+          <h1 class="greeting">Objetivos</h1>
+          <p class="greeting-sub">Lo que quieres conseguir. Cada objetivo es una órbita.</p>
+        </div>
+        <button class="btn btn--primary" id="btn-new-goal" type="button">+ Nuevo objetivo</button>
+      </header>
+
+      <div class="tabs" id="goal-tabs" role="tablist"></div>
+
+      <section class="goal-grid" id="goal-grid" aria-label="Lista de objetivos"></section>
+    </div>
+
+    <script type="module" src="./goals.ts"></script>
+  </body>
+</html>
