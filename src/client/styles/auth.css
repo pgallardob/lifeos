@@ -9,15 +9,15 @@
 
 .auth__card {
   width: 100%;
-  max-width: 380px;
+  max-width: 360px;
   background: var(--surface, #11161f);
   border: 1px solid var(--border, #1e2632);
   border-radius: var(--radius, 12px);
-  padding: 2rem 1.75rem;
+  padding: 1.5rem 1.5rem;
 }
 
 .auth__logo {
-  font-size: 1.4rem;
+  font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: 0.15em;
   color: var(--cyan, #22d3ee);
@@ -27,19 +27,19 @@
 .auth__sub {
   text-align: center;
   color: var(--muted, #8b95a5);
-  font-size: 0.85rem;
-  margin: 0.4rem 0 1.5rem;
+  font-size: 0.82rem;
+  margin: 0.3rem 0 1rem;
 }
 
 .auth__tabs {
   display: flex;
   gap: 0.5rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
 }
 
 .auth__tab {
   flex: 1;
-  padding: 0.55rem;
+  padding: 0.45rem;
   background: transparent;
   border: 1px solid var(--border, #1e2632);
   border-radius: 8px;
@@ -57,24 +57,24 @@
 .auth__form {
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
+  gap: 0.65rem;
 }
 
 .auth__form label {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  font-size: 0.8rem;
+  gap: 0.25rem;
+  font-size: 0.78rem;
   color: var(--muted, #8b95a5);
 }
 
 .auth__form input {
-  padding: 0.6rem 0.75rem;
+  padding: 0.45rem 0.65rem;
   background: var(--background, #0a0e14);
   border: 1px solid var(--border, #1e2632);
   border-radius: 8px;
   color: var(--text, #e6ecf3);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 
 .auth__form input:focus {
@@ -89,6 +89,37 @@
 }
 
 .auth__submit {
-  margin-top: 0.4rem;
-  padding: 0.65rem;
+  margin-top: 0.3rem;
+  padding: 0.55rem;
+}
+
+.auth__link {
+  align-self: flex-end;
+  font-size: 0.75rem;
+  color: var(--muted, #8b95a5);
+  text-decoration: none;
+  margin-top: -0.25rem;
+}
+
+.auth__link:hover {
+  color: var(--cyan, #22d3ee);
+}
+
+.auth__success {
+  color: var(--success, #4ade80);
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.auth__back {
+  display: block;
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--muted, #8b95a5);
+  text-decoration: none;
+  margin-top: 0.9rem;
+}
+
+.auth__back:hover {
+  color: var(--text, #e6ecf3);
 }

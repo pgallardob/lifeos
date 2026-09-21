@@ -82,6 +82,30 @@ export async function register(
   return { user: toUser(row), token };
 }
 
+/**
+ * Restablece la contraseña verificando nombre + email.
+ * Sin servicio de email, la identidad se confirma con el nombre de la cuenta.
+ * Invalida todas las sesiones activas del usuario.
+ */
+export async function resetPassword(
+  name: string,
+  email: string,
+  newPassword: string,
+): Promise<void> {
+  const row = await queryOne<UserRow>(
+    `SELECT * FROM users WHERE email = $1`,
+    [email.toLowerCase()],
+  );
+  if (!row || row.name.trim().toLowerCase() !== name.trim().toLowerCase()) {
+    throw HttpError.badRequest("Los datos no coinciden con ninguna cuenta.");
+  }
+  await execute(`UPDATE users SET password_hash = $1 WHERE id = $2`, [
+    hashPassword(newPassword),
+    row.id,
+  ]);
+  await execute(`DELETE FROM sessions WHERE user_id = $1`, [row.id]);
+}
+
 /** Login: verifica credenciales y abre sesión. */
 export async function login(
   email: string,

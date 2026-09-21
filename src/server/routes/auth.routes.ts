@@ -54,6 +54,14 @@ authRouter.post("/login", ah(async (req: Request, res: Response) => {
   res.json({ user });
 }));
 
+authRouter.post("/reset-password", ah(async (req: Request, res: Response) => {
+  const body = req.body as Record<string, unknown>;
+  const name = reqString(body, "name", 100);
+  const { email, password } = parseCredentials(body);
+  await authService.resetPassword(name, email, password);
+  res.json({ ok: true });
+}));
+
 authRouter.post("/logout", ah(async (req: Request, res: Response) => {
   const token = sessionTokenFrom(req.headers.cookie);
   if (token) await authService.logout(token);

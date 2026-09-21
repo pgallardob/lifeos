@@ -1,18 +1,20 @@
 # LifeOS
 
-Tu sistema operativo de vida. Define objetivos, divídelos en proyectos y tareas, y deja que el sistema calcule tu capacidad, riesgo y te dé insights accionables.
+Tu sistema operativo de vida. Define objetivos, divídelos en proyectos y tareas, y deja que el sistema calcule tu capacidad, riesgo y te dé insights accionables. Multi-usuario con autenticación por sesión.
 
 ## Stack
 
 - **Backend**: Node.js + TypeScript + Express + **Postgres (Neon serverless)**
 - **Frontend**: Vite multi-página + TypeScript vanilla (sin framework) — **PWA instalable**
-- **Tiempo real**: WebSocket (`ws`)
+- **Auth**: sesiones con cookie `HttpOnly` (30 días) + contraseñas con `scrypt`
+- **Tiempo real**: WebSocket (`ws`) autenticado por sesión
 - **Tests**: Vitest (motores puros)
 
 ## Requisitos
 
-- Node.js ≥ 18
+- Node.js ≥ 20
 - npm
+- Una base de datos Postgres (Neon recomendado) — variable `DATABASE_URL` en `.env`
 
 ## Arranque en desarrollo
 
@@ -47,25 +49,34 @@ src/
   server/        Express: routes → controllers → services → database
     database/    Postgres (Neon): schema, migraciones, seed
     services/    Lógica de negocio que mapea BD → motores
+    lib/         auth (middleware), password (scrypt), validate, http-error
   client/        Vite multi-página
     components/  UI reutilizable (sidebar, tarjetas, grafo, timeline, paleta, focus…)
-    pages/       Una página por sección (dashboard, goals, projects, timeline, resources, simulator, insights)
-    lib/         api, dom, format, ws
-    styles/      theme, components, dashboard, animations, responsive
+    pages/       Una página por sección (login, reset, dashboard, goals, projects,
+                 timeline, resources, simulator, insights, settings)
+    lib/         api, auth, dom, format, ws
+    styles/      theme, components, dashboard, auth, animations, responsive
   shared/        Tipos y constantes compartidos cliente/servidor
 tests/           Tests de los motores
+scripts/         check-db, test-auth (E2E), copy-sql, gen-icons
 ```
 
 ## Modelo de datos
 
-`goals` → `projects` → `tasks` (con `task_dependencies`), `resources`, `scenarios`, `events`.
-IDs con prefijo: `goal_`, `proj_`, `task_`, `res_`, `scn_`, `evt_`.
+`users` → `sessions` · `goals` → `projects` → `tasks` (con `dependencies`), `resources`, `scenarios`, `milestones`, `insights`, `events`.
+Todas las tablas de datos llevan `user_id` (aislamiento por usuario).
+IDs con prefijo: `usr_`, `goal_`, `proj_`, `task_`, `res_`, `scn_`, `evt_`.
 
 ## API
 
 | Método | Ruta | Descripción |
 |---|---|---|
 | GET | `/api/health` | Salud |
+| POST | `/api/auth/register` | Crear cuenta (siembra recursos) |
+| POST | `/api/auth/login` | Entrar (cookie de sesión) |
+| POST | `/api/auth/logout` | Salir |
+| POST | `/api/auth/reset-password` | Restablecer contraseña (nombre + email) |
+| GET | `/api/auth/me` | Usuario actual |
 | GET/POST/PATCH/DELETE | `/api/goals` | Objetivos |
 | GET/POST/PATCH/DELETE | `/api/projects` | Proyectos (con riesgo) |
 | GET | `/api/projects/:id/risk` | Informe de riesgo |
@@ -78,6 +89,8 @@ IDs con prefijo: `goal_`, `proj_`, `task_`, `res_`, `scn_`, `evt_`.
 
 ## Funcionalidades
 
+- **Multi-usuario**: registro, login, recuperación de contraseña y sesiones de 30 días.
+  Cada usuario ve solo sus datos (scoping por `user_id` en API y WebSocket).
 - **Command Center**: métricas, trayectoria de vida, vector de vida, "Hoy".
 - **Objetivos / Proyectos / Tareas**: CRUD completo, dependencias con detección de ciclos, grafo SVG.
 - **Timeline**: zoom día/semana/mes/año.
@@ -90,6 +103,43 @@ IDs con prefijo: `goal_`, `proj_`, `task_`, `res_`, `scn_`, `evt_`.
 - **WebSockets**: eventos en tiempo real con toasts.
 - **Accesible y responsive**: skip-link, foco visible, `prefers-reduced-motion`, bottom-nav en móvil.
 - **PWA**: instalable en el móvil (manifest + service worker + iconos), funciona offline para estáticos.
+- **Ajustes**: perfil de cuenta y cierre de sesión.
+
+## Cómo descargar y subir a GitHub
+
+### Clonar el proyecto
+
+```bash
+git clone https://github.com/pgallardob/lifeos.git
+cd lifeos
+npm install
+```
+
+Crea un `.env` con tu `DATABASE_URL` (ver `.env` de ejemplo o el dashboard de Neon)
+y arranca con `npm run dev`.
+
+### Subirlo a tu propio GitHub
+
+```bash
+# 1. Crea un repo vacío en github.com (sin README ni .gitignore)
+
+# 2. Apunta el remoto a tu repo y sube
+git remote set-url origin https://github.com/TU_USUARIO/TU_REPO.git
+git push -u origin main
+```
+
+Si partes de una carpeta sin git:
+
+```bash
+git init
+git add -A
+git commit -m "LifeOS"
+git branch -M main
+git remote add origin https://github.com/TU_USUARIO/TU_REPO.git
+git push -u origin main
+```
+
+> **Importante**: `.env` está en `.gitignore` — nunca subas tu `DATABASE_URL`.
 
 ## Producción
 

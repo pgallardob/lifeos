@@ -8,7 +8,7 @@ import { mountFocusMode } from "./components/focus-mode.js";
 import { mountOnboarding } from "./components/onboarding.js";
 import { renderSidebar } from "./components/sidebar.js";
 import { logout, requireSession } from "./lib/auth.js";
-import { el, mount } from "./lib/dom.js";
+import { el, mount, svgEl } from "./lib/dom.js";
 import { fechaLarga } from "./lib/format.js";
 import { connectWebSocket } from "./lib/ws.js";
 
@@ -89,12 +89,23 @@ function renderTopbar(userName: string): HTMLElement {
   });
 
   const logoutBtn = el("button", {
-    className: "kbd-hint",
+    className: "btn btn--ghost btn--sm topbar__logout",
     type: "button",
     "aria-label": "Cerrar sesión",
     title: `Cerrar sesión (${userName})`,
-    textContent: "⏻",
   });
+  const logoutIcon = svgEl("svg", {
+    viewBox: "0 0 24 24", width: 14, height: 14, fill: "none",
+    stroke: "currentColor", "stroke-width": 2,
+    "stroke-linecap": "round", "stroke-linejoin": "round",
+    "aria-hidden": "true",
+  });
+  logoutIcon.append(
+    svgEl("path", { d: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" }),
+    svgEl("polyline", { points: "16 17 21 12 16 7" }),
+    svgEl("line", { x1: 21, y1: 12, x2: 9, y2: 12 }),
+  );
+  logoutBtn.append(logoutIcon, el("span", { textContent: "Salir" }));
   logoutBtn.addEventListener("click", () => void logout());
 
   right.append(paletteBtn, status, logoutBtn);
