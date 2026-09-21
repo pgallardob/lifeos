@@ -32,16 +32,28 @@ function parseCredentials(body: Record<string, unknown>): { email: string; passw
     throw HttpError.badRequest("El email no tiene un formato válido.");
   }
   const password = reqString(body, "password", 200);
-  if (password.length < 6) {
-    throw HttpError.badRequest("La contraseña debe tener al menos 6 caracteres.");
-  }
   return { email, password };
+}
+
+/** Política de contraseña para cuentas nuevas / reset (no aplica al login). */
+function assertStrongPassword(password: string): void {
+  if (
+    password.length < 8 ||
+    !/[a-z]/.test(password) ||
+    !/[A-Z]/.test(password) ||
+    !/\d/.test(password)
+  ) {
+    throw HttpError.badRequest(
+      "La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número.",
+    );
+  }
 }
 
 authRouter.post("/register", ah(async (req: Request, res: Response) => {
   const body = req.body as Record<string, unknown>;
   const name = reqString(body, "name", 100);
   const { email, password } = parseCredentials(body);
+  assertStrongPassword(password);
   const { user, token } = await authService.register(name, email, password);
   setSessionCookie(res, token);
   res.status(201).json({ user });
@@ -58,6 +70,7 @@ authRouter.post("/reset-password", ah(async (req: Request, res: Response) => {
   const body = req.body as Record<string, unknown>;
   const name = reqString(body, "name", 100);
   const { email, password } = parseCredentials(body);
+  assertStrongPassword(password);
   await authService.resetPassword(name, email, password);
   res.json({ ok: true });
 }));

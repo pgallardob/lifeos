@@ -1,5 +1,6 @@
 /** Página de login/registro. Si ya hay sesión, redirige al dashboard. */
 import { api, ApiError } from "../lib/api.js";
+import { checkPassword } from "../lib/auth.js";
 
 const DASHBOARD = "/pages/dashboard.html";
 
@@ -56,9 +57,22 @@ formLogin.addEventListener("submit", async (e) => {
 formRegister.addEventListener("submit", async (e) => {
   e.preventDefault();
   registerError.hidden = true;
+  const data = new FormData(formRegister);
+  const password = String(data.get("password") ?? "");
+  const confirm = String(data.get("confirm") ?? "");
+  const policyError = checkPassword(password);
+  if (policyError) {
+    registerError.textContent = policyError;
+    registerError.hidden = false;
+    return;
+  }
+  if (password !== confirm) {
+    registerError.textContent = "Las contraseñas no coinciden.";
+    registerError.hidden = false;
+    return;
+  }
   const btn = formRegister.querySelector<HTMLButtonElement>("button[type=submit]")!;
   btn.disabled = true;
-  const data = new FormData(formRegister);
   try {
     await api.post("/api/auth/register", {
       name: data.get("name"),

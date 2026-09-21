@@ -33,7 +33,7 @@ check("sin sesión → 401", noAuth.status === 401, `got ${noAuth.status}`);
 // 2. Registrar usuario A
 const regA = await req("/api/auth/register", {
   method: "POST",
-  body: { name: "Pedro", email: emailA, password: "secret123" },
+  body: { name: "Pedro", email: emailA, password: "Secret123" },
 });
 check("register A", regA.status === 201, `${regA.status} ${JSON.stringify(regA.data)}`);
 cookieA = regA.setCookie?.split(";")[0] ?? "";
@@ -59,7 +59,7 @@ check("goal A creado", g.status === 201, g.data?.title);
 // 6. Registrar usuario B → ve 0 goals
 const regB = await req("/api/auth/register", {
   method: "POST",
-  body: { name: "María", email: emailB, password: "secret456" },
+  body: { name: "María", email: emailB, password: "Secret456" },
 });
 cookieB = regB.setCookie?.split(";")[0] ?? "";
 const goalsB = await req("/api/goals", { cookie: cookieB });
@@ -79,7 +79,7 @@ check("login incorrecto → 401", badLogin.status === 401, `got ${badLogin.statu
 // 9. Login correcto → A ve su goal
 const loginA = await req("/api/auth/login", {
   method: "POST",
-  body: { email: emailA, password: "secret123" },
+  body: { email: emailA, password: "Secret123" },
 });
 const cookieA2 = loginA.setCookie?.split(";")[0] ?? "";
 const goalsA = await req("/api/goals", { cookie: cookieA2 });
@@ -93,8 +93,15 @@ check("logout → 401", afterLogout.status === 401, `got ${afterLogout.status}`)
 // 11. Email duplicado → 409
 const dup = await req("/api/auth/register", {
   method: "POST",
-  body: { name: "Otro", email: emailA, password: "secret123" },
+  body: { name: "Otro", email: emailA, password: "Secret123" },
 });
 check("email duplicado → 409", dup.status === 409, `got ${dup.status}`);
+
+// 12. Contraseña débil → 400
+const weak = await req("/api/auth/register", {
+  method: "POST",
+  body: { name: "Débil", email: `debil${ts}@test.cl`, password: "abc" },
+});
+check("contraseña débil → 400", weak.status === 400, `got ${weak.status}`);
 
 console.log(process.exitCode ? "\n❌ Hay fallos" : "\n✅ Todo OK");

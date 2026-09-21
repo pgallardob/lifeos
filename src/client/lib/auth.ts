@@ -27,3 +27,16 @@ export async function logout(): Promise<void> {
     window.location.href = LOGIN_PAGE;
   }
 }
+
+/** Política de contraseña (espejo del servidor). Devuelve el error o null. */
+export function checkPassword(password: string): string | null {
+  if (
+    password.length < 8 ||
+    !/[a-z]/.test(password) ||
+    !/[A-Z]/.test(password) ||
+    !/\d/.test(password)
+  ) {
+    return "Mínimo 8 caracteres, una mayúscula, una minúscula y un número.";
+  }
+  return null;
+}

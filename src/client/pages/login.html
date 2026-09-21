@@ -35,7 +35,7 @@
           </label>
           <label>
             Contraseña
-            <input name="password" type="password" autocomplete="current-password" required minlength="6" placeholder="••••••" />
+            <input name="password" type="password" autocomplete="current-password" required placeholder="••••••" />
           </label>
           <a class="auth__link" href="/pages/reset.html">¿Olvidaste tu contraseña?</a>
           <p class="auth__error" id="login-error" role="alert" hidden></p>
@@ -53,8 +53,13 @@
           </label>
           <label>
             Contraseña
-            <input name="password" type="password" autocomplete="new-password" required minlength="6" placeholder="Mínimo 6 caracteres" />
+            <input name="password" type="password" autocomplete="new-password" required placeholder="Mínimo 8 caracteres" />
           </label>
+          <label>
+            Confirmar contraseña
+            <input name="confirm" type="password" autocomplete="new-password" required placeholder="Repite la contraseña" />
+          </label>
+          <p class="auth__hint">Mínimo 8 caracteres, una mayúscula, una minúscula y un número.</p>
           <p class="auth__error" id="register-error" role="alert" hidden></p>
           <button class="btn btn--primary auth__submit" type="submit">Crear cuenta</button>
         </form>

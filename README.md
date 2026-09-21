@@ -91,6 +91,7 @@ IDs con prefijo: `usr_`, `goal_`, `proj_`, `task_`, `res_`, `scn_`, `evt_`.
 
 - **Multi-usuario**: registro, login, recuperación de contraseña y sesiones de 30 días.
   Cada usuario ve solo sus datos (scoping por `user_id` en API y WebSocket).
+  Política de contraseña: mínimo 8 caracteres con mayúscula, minúscula y número.
 - **Command Center**: métricas, trayectoria de vida, vector de vida, "Hoy".
 - **Objetivos / Proyectos / Tareas**: CRUD completo, dependencias con detección de ciclos, grafo SVG.
 - **Timeline**: zoom día/semana/mes/año.

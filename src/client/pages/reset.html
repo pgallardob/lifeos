@@ -34,8 +34,13 @@
           </label>
           <label>
             Nueva contraseña
-            <input name="password" type="password" autocomplete="new-password" required minlength="6" placeholder="Mínimo 6 caracteres" />
+            <input name="password" type="password" autocomplete="new-password" required placeholder="Mínimo 8 caracteres" />
           </label>
+          <label>
+            Confirmar contraseña
+            <input name="confirm" type="password" autocomplete="new-password" required placeholder="Repite la contraseña" />
+          </label>
+          <p class="auth__hint">Mínimo 8 caracteres, una mayúscula, una minúscula y un número.</p>
           <p class="auth__error" id="reset-error" role="alert" hidden></p>
           <p class="auth__success" id="reset-success" role="status" hidden></p>
           <button class="btn btn--primary auth__submit" type="submit">Restablecer contraseña</button>
