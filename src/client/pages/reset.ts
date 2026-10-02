@@ -4,10 +4,16 @@
  */
 import { api, ApiError } from "../lib/api.js";
 import { checkPassword } from "../lib/auth.js";
+import { attachPasswordToggle } from "../lib/password-toggle.js";
 
 const form = document.getElementById("form-reset") as HTMLFormElement;
 const errorEl = document.getElementById("reset-error") as HTMLElement;
 const successEl = document.getElementById("reset-success") as HTMLElement;
+
+// Ojo mostrar/ocultar en los campos de contraseña
+for (const input of form.querySelectorAll<HTMLInputElement>('input[type="password"]')) {
+  attachPasswordToggle(input);
+}
 
 form.addEventListener("submit", async (e) => {
   e.preventDefault();

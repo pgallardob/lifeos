@@ -1,6 +1,7 @@
 /** Página de login/registro. Si ya hay sesión, redirige al dashboard. */
 import { api, ApiError } from "../lib/api.js";
 import { checkPassword } from "../lib/auth.js";
+import { attachPasswordToggle } from "../lib/password-toggle.js";
 
 const DASHBOARD = "/pages/dashboard.html";
 
@@ -18,6 +19,11 @@ const formLogin = document.getElementById("form-login") as HTMLFormElement;
 const formRegister = document.getElementById("form-register") as HTMLFormElement;
 const loginError = document.getElementById("login-error") as HTMLElement;
 const registerError = document.getElementById("register-error") as HTMLElement;
+
+// Ojo mostrar/ocultar en todos los campos de contraseña
+for (const input of document.querySelectorAll<HTMLInputElement>('.auth__form input[type="password"]')) {
+  attachPasswordToggle(input);
+}
 
 function showTab(login: boolean): void {
   tabLogin.classList.toggle("auth__tab--active", login);
